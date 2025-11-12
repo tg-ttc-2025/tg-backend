@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { MinioModule } from './minio/minio.module';
-import { OffenseDetectionModule } from './offense_detection/offense_detection.module';
+import { DefenseDetectionModule } from './offense_detection/defense_detection.module';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { OffenseDetectionModule } from './offense_detection/offense_detection.mo
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: false, // Set to false in production
     }),
-    OffenseDetectionModule,
+    DefenseDetectionModule,
     MinioModule,
   ],
 })
