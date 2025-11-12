@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { MinioModule } from './minio/minio.module';
-import { DefenseDetectionModule } from './offense_detection/defense_detection.module';
+import { DefenseDetectionModule } from './defense_detection/defense_detection.module';
+
 
 @Module({
   imports: [
