@@ -6,11 +6,10 @@ export class MinioService {
   private readonly logger = new Logger(MinioService.name);
   private minioClient: Minio.Client;
   private bucketName: string;
-  private minioHost: string; // Store host for public URL construction
+  private minioHost: string;
 
   constructor() {
     this.bucketName = process.env.MINIO_BUCKET || 'tg-detections';
-    // Store Minio endpoint details
     this.minioHost = process.env.MINIO_ENDPOINT || 'localhost';
     const minioPort = parseInt(process.env.MINIO_PORT) || 9000;
     const useSSL = process.env.MINIO_USE_SSL === 'true';
@@ -25,7 +24,6 @@ export class MinioService {
 
     this.ensureBucket();
   }
-// ... (ensureBucket remains the same)
 
   private async ensureBucket() {
     try {
@@ -34,7 +32,6 @@ export class MinioService {
         await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
         this.logger.log(`Bucket ${this.bucketName} created`);
         
-        // OPTIONAL: Set public read policy on creation
         const policy = JSON.stringify({
           Version: "2012-10-17",
           Statement: [
@@ -54,13 +51,10 @@ export class MinioService {
     }
   }
 
-  // New method to construct the direct public path
   private getDirectPublicPath(filePath: string): string {
     const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
     const port = process.env.MINIO_PORT ? `:${process.env.MINIO_PORT}` : '';
     
-    // Assumes Minio is configured for virtual-host style or path style access.
-    // This uses the path style: http(s)://endpoint:port/bucketName/filePath
     return `${protocol}://${this.minioHost}${port}/${this.bucketName}/${filePath}`;
   }
 
@@ -68,7 +62,7 @@ export class MinioService {
     file: Express.Multer.File,
     folder: string,
     objId: string,
-  ): Promise<{ path: string; fileName: string; publicUrl: string }> { // Added publicUrl
+  ): Promise<{ path: string; fileName: string; publicUrl: string }> {
     const timestamp = Date.now();
     const fileName = `${objId}-${timestamp}-${file.originalname}`;
     const filePath = `${folder}/${fileName}`;
@@ -85,8 +79,8 @@ export class MinioService {
       );
 
       this.logger.log(`File uploaded: ${filePath}`);
-      const publicUrl = this.getDirectPublicPath(filePath); // Construct public URL
-      return { path: filePath, fileName, publicUrl }; // Return publicUrl
+      const publicUrl = this.getDirectPublicPath(filePath);
+      return { path: filePath, fileName, publicUrl }; 
     } catch (error) {
       this.logger.error(`Upload failed: ${error.message}`);
       throw error;
@@ -102,7 +96,7 @@ export class MinioService {
     fileName: string; 
     size: number; 
     mimeType: string; 
-    publicUrl: string // Added publicUrl
+    publicUrl: string
   }>> {
     const uploadPromises = files.map(async (file) => {
       const result = await this.uploadFile(file, folder, objId);
@@ -116,7 +110,6 @@ export class MinioService {
     return Promise.all(uploadPromises);
   }
 
-  // Changed getFileUrl to optionally return the public path
   async getFileUrl(filePath: string): Promise<string> {
     const useDirectPath = process.env.MINIO_RETURN_DIRECT_PATH === 'true';
 
@@ -125,7 +118,6 @@ export class MinioService {
     }
     
     try {
-      // Default behavior: return presigned URL
       return await this.minioClient.presignedGetObject(this.bucketName, filePath, 60 * 60);
     } catch (error) {
       this.logger.error(`Error generating presigned URL: ${error.message}`);
