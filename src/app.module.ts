@@ -2,8 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { MinioModule } from './minio/minio.module';
-import { DefenseDetectionModule } from './defense_detection/defense_detection.module';
-
+import { OffenseDetectionModule } from './offense_detection/offense_detection.module';
 
 @Module({
   imports: [
@@ -15,9 +14,9 @@ import { DefenseDetectionModule } from './defense_detection/defense_detection.mo
       password: process.env.DB_PASSWORD || 'tg_password',
       database: process.env.DB_NAME || 'tg_postgres',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
+      synchronize: false, // Set to false in production
     }),
-    DefenseDetectionModule,
+    OffenseDetectionModule,
     MinioModule,
   ],
 })
