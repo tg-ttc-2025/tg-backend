@@ -132,4 +132,35 @@ export class MinioService {
       throw error;
     }
   }
+
+  /**
+   * Delete a file from MinIO
+   * @param filePath - The path of the file to delete (e.g., 'defense/obj123-1234567890-image.jpg')
+   */
+  async deleteFile(filePath: string): Promise<void> {
+    try {
+      await this.minioClient.removeObject(this.bucketName, filePath);
+      this.logger.log(`File deleted from MinIO: ${filePath}`);
+    } catch (error) {
+      this.logger.error(`Failed to delete file from MinIO: ${filePath} - ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete multiple files from MinIO
+   * @param filePaths - Array of file paths to delete
+   * @returns Array of results with success/failure status for each file
+   */
+  async deleteFiles(filePaths: string[]): Promise<Array<{ path: string; success: boolean; error?: string }>> {
+    const results = await Promise.allSettled(
+      filePaths.map(path => this.deleteFile(path))
+    );
+
+    return results.map((result, index) => ({
+      path: filePaths[index],
+      success: result.status === 'fulfilled',
+      error: result.status === 'rejected' ? result.reason?.message : undefined,
+    }));
+  }
 }
