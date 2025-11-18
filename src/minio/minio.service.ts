@@ -132,4 +132,33 @@ export class MinioService {
       throw error;
     }
   }
+
+  // Add this method to your MinioService class
+
+async deleteFile(filePath: string): Promise<void> {
+  try {
+    await this.minioClient.removeObject(this.bucketName, filePath);
+    this.logger.log(`File deleted from MinIO: ${filePath}`);
+  } catch (error) {
+    this.logger.error(`Failed to delete file ${filePath}: ${error.message}`);
+    throw error;
+  }
+}
+
+// BONUS: Delete multiple files at once (more efficient for Thanos Snap)
+async deleteFiles(filePaths: string[]): Promise<void> {
+  if (!filePaths || filePaths.length === 0) {
+    return;
+  }
+
+  try {
+    // MinIO supports batch deletion with removeObjects
+    const objectsList = filePaths.map(path => path);
+    await this.minioClient.removeObjects(this.bucketName, objectsList);
+    this.logger.log(`Batch deleted ${filePaths.length} files from MinIO`);
+  } catch (error) {
+    this.logger.error(`Failed to batch delete files: ${error.message}`);
+    throw error;
+  }
+}
 }
